@@ -1,5 +1,7 @@
-import express from 'express';
-import bodyParser from 'body-parser';
+const sqlite3 = require('sqlite3').verbose();
+const express = require('express');
+const bodyParser = require('body-parser');
+const axios=require('axios');
 
 const products = [{
     id: '123',
@@ -98,25 +100,89 @@ export let cartItems = [
 const app = express();
 app.use(bodyParser.json());
 
-app.get('/api/products',(req,res)=>{
-    res.status(200).json(products)
-});
+async function queryDatabase(query, params) {
+    return new Promise((resolve, reject) => {
+        const db = new sqlite3.Database('vue-db.sqlite');
+        db.all(query, params, (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+            db.close();
+        });
+    });
+}
 
-app.get('/api/users/:/userId/cart',(req,res)=>{
-    res.send(200).json(cartItems);
-});
-
-app.get('/api/products/:productId',(req,res)=>{
-    const {productId}=req.params;
-    const product =products.find(product.id===productId)
-
-    if(product){
-        res.status(200).json(product)
-    }else{
-        res.status(404).json('Could not find the product!');
+app.get('/api/products', async (req, res) => {
+    try {
+        const rows = await queryDatabase('SELECT * FROM products', []);
+        res.status(200).json(rows);
+    } catch (err) {
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
+app.get('/api/users/:userId/cart', async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const user = await queryDatabase('SELECT * FROM users WHERE id = ?', [userId]);
+        if (!user[0]) {
+            res.status(404).json('Could not find user!');
+            return;
+        }
+        const cartItemIds = user[0].cartItems.split(',');
+        const rows = await queryDatabase('SELECT * FROM products WHERE id IN (?)', [cartItemIds]);
+        res.status(200).json(rows);
+    } catch (err) {
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.get('/api/products/:productId', async (req, res) => {
+    const { productId } = req.params;
+
+    try {
+        const product = await queryDatabase('SELECT * FROM products WHERE id = ?', [productId]);
+        if (!product[0]) {
+            res.status(404).json('Could not find the product!');
+            return;
+        }
+        res.status(200).json(product[0]);
+    } catch (err) {
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.post('/api/users/:userId/cart', async (req, res) => {
+    const { userId } = req.params;
+    const { productId } = req.body;
+
+    try {
+        await queryDatabase('UPDATE users SET cartItems = cartItems || ? || "," WHERE id = ?', [productId, userId]);
+        const product = await queryDatabase('SELECT * FROM products WHERE id = ?', [productId]);
+        if (!product[0]) {
+            res.status(404).json('Could not find product!');
+            return;
+        }
+        res.status(200).json(product[0]);
+    } catch (err) {
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.delete('/api/users/:userId/cart/:productId', async (req, res) => {
+    const { userId, productId } = req.params;
+
+    try {
+        await queryDatabase('UPDATE users SET cartItems = REPLACE(cartItems, ? || ",", "") WHERE id = ?', [productId, userId]);
+        const rows = await queryDatabase('SELECT * FROM products WHERE id IN (SELECT cartItems FROM users WHERE id = ?)', [userId]);
+        res.status(200).json(rows);
+    } catch (err) {
+        res.status(500).json({ error: 'Database error' });
+    }
+});
 
 app.listen(8000, () => {
     console.log('Server is listening on port 8000');
