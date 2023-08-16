@@ -1,171 +1,82 @@
-const sqlite3 = require('sqlite3').verbose();
-const express = require('express');
-const bodyParser = require('body-parser');
-const axios = require('axios');
+import express from 'express';
+import bodyParser from 'body-parser';
+import sqlite3 from 'sqlite3';
+import path from 'path';
 
-const products = [{
-    id: '123',
-    name: 'Running Shoes',
-    price: '60.00',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-    imageUrl: '/images/shoes-1.jpg',
-    averageRating: '5.0',
-}, {
-    id: '234',
-    name: 'Basketball Shoes',
-    price: '120.00',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-    imageUrl: '/images/shoes-2.jpg',
-    averageRating: '5.0',
-}, {
-    id: '345',
-    name: 'Bright Red Shoes',
-    price: '90.00',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-    imageUrl: '/images/shoes-3.jpg',
-    averageRating: '5.0',
-}, {
-    id: '456',
-    name: 'Fancy Shoes',
-    price: '190.00',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-    imageUrl: '/images/shoes-4.jpg',
-    averageRating: '5.0',
-}, {
-    id: '567',
-    name: 'Skateboard Shoes',
-    price: '75.00',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-    imageUrl: '/images/shoes-5.jpg',
-    averageRating: '5.0',
-}, {
-    id: '678',
-    name: 'High Heels',
-    price: '200.00',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-    imageUrl: '/images/shoes-6.jpg',
-    averageRating: '5.0',
-}, {
-    id: '789',
-    name: 'Dark Shoes',
-    price: '100.00',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-    imageUrl: '/images/shoes-7.jpg',
-    averageRating: '5.0',
-}, {
-    id: '890',
-    name: 'Classic Shoes',
-    price: '40.00',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-    imageUrl: '/images/shoes-8.jpg',
-    averageRating: '5.0',
-}, {
-    id: '901',
-    name: 'Plain Shoes',
-    price: '54.00',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-    imageUrl: '/images/shoes-9.jpg',
-    averageRating: '5.0',
-},
-    {
-        id: '901',
-        name: 'Teal Dress Shoes',
-        price: '330.00',
-        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-        imageUrl: '/images/shoes-10.jpg',
-        averageRating: '5.0',
-    },
-    {
-        id: '789',
-        name: 'Fancy Boots',
-        price: '230.00',
-        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-        imageUrl: '/images/shoes-11.jpg',
-        averageRating: '5.0',
-    }, {
-        id: '890',
-        name: 'Gold Shoes',
-        price: '180.00',
-        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
-        imageUrl: '/images/shoes-12.jpg',
-        averageRating: '5.0',
-    }];
-
-export let cartItems = [
-    products[0],
-    products[2],
-    products[3],
-];
-
+const cors = require('cors')
 const app = express();
+
+app.use(cors());
+
 app.use(bodyParser.json());
+app.use('/images', express.static(path.join(__dirname, '../assets')));
 
-// Connect to the SQLite database
 const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
-    if (err) return console.error(err.message);
+    if (err) {
+        console.error(err.message);
+    } else {
+        console.log('Connected to the database');
 
-    console.log('Connected to the database');
+        // Create tables and perform other initializations here
+        // (Code for creating products, users, and carts tables)
+        db.run(`
+            CREATE TABLE IF NOT EXISTS products (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
+                price DOUBLE,
+                description TEXT,
+                imageUrl TEXT,
+                averageRating TEXT
+            )
+        `, (createErr) => {
+            if (createErr) {
+                console.error('Error creating products table:', createErr.message);
+            } else {
+                console.log('Products table created successfully');
+            }
+        });
 
-    // Create the products table if it doesn't exist
-    // Create the products table if it doesn't exist
-    db.run(`
-        CREATE TABLE IF NOT EXISTS products (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            price DOUBLE,
-            description TEXT,
-            imageUrl TEXT,
-            averageRating TEXT
-        )
-    `, (createErr) => {
-        if (createErr) {
-            console.error('Error creating products table:', createErr.message);
-        } else {
-            console.log('Products table created successfully');
-        }
-    });
+        // Create the users table if it doesn't exist
+        db.run(`
+            CREATE TABLE IF NOT EXISTS users (
+                id PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                email TEXT NOT NULL,
+                PhoneNo TEXT,
+                cartItems TEXT DEFAULT ''
+            )
+        `, (createErr) => {
+            if (createErr) {
+                console.error('Error creating users table:', createErr.message);
+            } else {
+                console.log('Users table created successfully');
+            }
+        });
 
-
-    // Create the users table if it doesn't exist
-    db.run(`
-        CREATE TABLE IF NOT EXISTS users (
-            id PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            email TEXT NOT NULL,
-            PhoneNo TEXT,
-            cartItems TEXT DEFAULT ''
-        )
-    `, (createErr) => {
-        if (createErr) {
-            console.error('Error creating users table:', createErr.message);
-        } else {
-            console.log('Users table created successfully');
-        }
-    });
-
-    db.run(`
-       CREATE TABLE IF NOT EXISTS carts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER, 
-        cart_item_id INTEGER,
-        product_id INTEGER,
-        quantity INTEGER,
-        price DECIMAL(10, 2),
-        total_price DECIMAL(10, 2),
-        FOREIGN KEY (user_id) REFERENCES users(id),
-        FOREIGN KEY (product_id) REFERENCES products(id)
-    )
-
-    `, (createErr) => {
-        if (createErr) {
-            console.error('Error creating users table:', createErr.message);
-        } else {
-            console.log('Carts table created successfully');
-        }
-    });
+        db.run(`
+            CREATE TABLE IF NOT EXISTS carts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER, 
+                cart_item_id INTEGER,
+                product_id INTEGER,
+                quantity INTEGER,
+                price DECIMAL(10, 2),
+                total_price DECIMAL(10, 2),
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (product_id) REFERENCES products(id)
+            )
+        `, (createErr) => {
+            if (createErr) {
+                console.error('Error creating carts table:', createErr.message);
+            } else {
+                console.log('Carts table created successfully');
+            }
+        });
+    }
 });
 
 // ... Other parts of your code ...
+
 
 async function queryDatabase(query, params) {
     return new Promise((resolve, reject) => {
@@ -189,13 +100,18 @@ app.get('/api/products', async (req, res) => {
         res.status(500).json({error: 'Database error'});
     }
 });
-
 // API route to get a user's cart items
 app.get('/api/users/:userId/cart', async (req, res) => {
     const { userId } = req.params;
 
     try {
-        const cartItems = await queryDatabase('SELECT * FROM carts WHERE user_id = ?', [userId]);
+        const cartItems = await queryDatabase(
+            'SELECT c.*, p.name, p.price, p.imageUrl ' +
+            'FROM carts c ' +
+            'JOIN products p ON c.product_id = p.id ' +
+            'WHERE c.user_id = ?',
+            [userId]
+        );
         res.status(200).json(cartItems);
     } catch (err) {
         res.status(500).json({ error: 'Database error' });
@@ -270,7 +186,7 @@ app.post('/api/products', (req, res) => {
     });
 });
 
-// API route to add a product to a user's cart
+// API route to add to cart
 app.post('/api/users/:userId/cart', async (req, res) => {
     const { userId } = req.params;
     const { product_id, quantity } = req.body;
@@ -287,9 +203,9 @@ app.post('/api/users/:userId/cart', async (req, res) => {
         const cartItem = await queryDatabase('SELECT * FROM carts WHERE product_id = ? AND user_id = ?', [product_id, userId]);
         if (cartItem[0]) {
             // Calculate total price based on updated quantity
-            const _qty = parseInt(cartItem[0].quantity) + quantity;
+            // const _qty = parseInt(cartItem[0].quantity) + quantity;
             const price = parseFloat(product[0].price);
-            const total_price = price * _qty;
+            const total_price = price * quantity;
 
             // Update the cart item with new quantity and total price
             const updateQuery = `
@@ -297,7 +213,7 @@ app.post('/api/users/:userId/cart', async (req, res) => {
             SET quantity = ?, price = ?, total_price = ?
             WHERE product_id = ?
         `;
-            await queryDatabase(updateQuery, [_qty, price, total_price, product_id]);
+            await queryDatabase(updateQuery, [quantity, price, total_price, product_id]);
 
             res.status(200).json({ message: 'Cart item updated successfully' });
             return;
@@ -419,6 +335,11 @@ app.delete('/api/products/:productId', (req, res) => {
         }
     });
 });
+
+
+// Define other routes here
+
+// ... The rest of your API routes ...
 
 app.listen(8000, () => {
     console.log('Server is listening on port 8000');
