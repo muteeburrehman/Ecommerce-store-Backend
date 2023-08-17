@@ -235,6 +235,45 @@ app.post('/api/users/:userId/cart', async (req, res) => {
         res.status(500).json({ error: 'Database error:' + err });
     }
 });
+
+// API route for user login
+app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await queryDatabase('SELECT * FROM users WHERE email = ? AND password = ?', [email, password]);
+        if (!user[0]) {
+            res.status(401).json({ message: 'Invalid email or password' });
+            return;
+        }
+        res.status(200).json({ message: 'Login successful', user: user[0] });
+    } catch (err) {
+        res.status(500).json({ message: 'Database error' });
+    }
+});
+// API route for user registration
+app.post('/api/register', async (req, res) => {
+    const { email, password, username, PhoneNo } = req.body;
+
+    try {
+        const userExists = await queryDatabase('SELECT * FROM users WHERE email = ?', [email]);
+        if (userExists[0]) {
+            res.status(400).json({ message: 'User already exists' });
+            return;
+        }
+
+        const insertQuery = `
+            INSERT INTO users (username, email, PhoneNo, password)
+            VALUES (?, ?, ?, ?)
+        `;
+        await queryDatabase(insertQuery, [username, email, PhoneNo, password]);
+
+        res.status(201).json({ message: 'User registered successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Database error' });
+    }
+});
+
 // API route to update a product based on productId
 app.put('/api/products/:productId', (req, res) => {
     const {productId} = req.params;
