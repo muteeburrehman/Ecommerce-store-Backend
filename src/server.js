@@ -40,10 +40,10 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
         db.run(`
             CREATE TABLE IF NOT EXISTS users (
                 id PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL,
-                email TEXT NOT NULL,
-                PhoneNo TEXT,
-                cartItems TEXT DEFAULT ''
+                username TEXT NOT NULL UNIQUE,
+                email TEXT NOT NULL UNIQUE,
+                phoneNo TEXT NOT NULL UNIQUE,
+                password TEXT NOT NULL
             )
         `, (createErr) => {
             if (createErr) {
@@ -253,20 +253,32 @@ app.post('/api/login', async (req, res) => {
 });
 // API route for user registration
 app.post('/api/register', async (req, res) => {
-    const { email, password, username, PhoneNo } = req.body;
+    const { email, password, username, phoneNo } = req.body;
 
     try {
-        const userExists = await queryDatabase('SELECT * FROM users WHERE email = ?', [email]);
-        if (userExists[0]) {
-            res.status(400).json({ message: 'User already exists' });
+        const usernameExists = await queryDatabase('SELECT * FROM users WHERE username = ?', [username]);
+        if (usernameExists[0]) {
+            res.status(400).json({ message: 'Username already exists' });
+            return;
+        }
+
+        const emailExists = await queryDatabase('SELECT * FROM users WHERE email = ?', [email]);
+        if (emailExists[0]) {
+            res.status(400).json({ message: 'Email already exists' });
+            return;
+        }
+
+        const phoneNoExists = await queryDatabase('SELECT * FROM users WHERE phoneNo = ?', [phoneNo]);
+        if (phoneNoExists[0]) {
+            res.status(400).json({ message: 'Phone number already exists' });
             return;
         }
 
         const insertQuery = `
-            INSERT INTO users (username, email, PhoneNo, password)
+            INSERT INTO users (username, email, phoneNo, password)
             VALUES (?, ?, ?, ?)
         `;
-        await queryDatabase(insertQuery, [username, email, PhoneNo, password]);
+        await queryDatabase(insertQuery, [username, email, phoneNo, password]);
 
         res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {
