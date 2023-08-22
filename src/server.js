@@ -2,7 +2,10 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import sqlite3 from 'sqlite3';
 import path from 'path';
-
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth2';
+import { Strategy as FacebookStrategy } from 'passport-facebook';
+import expressSession from 'express-session';
 const cors = require('cors')
 const app = express();
 
@@ -389,7 +392,68 @@ app.delete('/api/products/:productId', (req, res) => {
 
 
 // Define other routes here
+//For Google
+//const app=express();
+const GOOGLE_CLIENT_ID = '612009756713-fevv7ilgb1ltpvrc7cnsolno8bjadb3c.apps.googleusercontent.com';
+const GOOGLE_CLIENT_SECRET ='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';
 
+
+passport.use(new GoogleStrategy({
+    clientID: GOOGLE_CLIENT_ID,
+    clientSecret: GOOGLE_CLIENT_SECRET,
+    callbackURL: '/google/callback'
+}, (accessToken, refreshToken, profile, callback) => {
+    callback(null, profile);
+}));
+//For Facebook
+const FACEBOOK_CLIENT_ID='990173875566142';
+const FACEBOOK_CLIENT_SECRET='ea1259d7c4fc652844b53dd9e8049185';
+
+passport.use(new FacebookStrategy({
+    clientID: FACEBOOK_CLIENT_ID,
+    clientSecret: FACEBOOK_CLIENT_SECRET,
+    callbackURL: '/facebook/callback',
+    profileFields: ['emails', 'displayName', 'name', 'picture']
+}, (accessToken, refreshToken, profile, callback) => {
+    callback(null, profile);
+}));
+
+passport.serializeUser((user, callback) => {
+    callback(null, user);
+});
+
+passport.deserializeUser((user, callback) => {
+    callback(null, user);
+});
+
+app.use(expressSession({
+    secret: 'shoestoreapp',
+    resave: true,
+    saveUninitialized: true
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.get('/login/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+app.get('/login/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+
+app.get('/google/callback', passport.authenticate('google'), (req, res) => {
+    res.redirect('http://localhost:8080/');
+});
+
+app.get('/facebook/callback', passport.authenticate('facebook'), (req, res) => {
+    res.redirect('http://localhost:8080/');
+});
+
+app.get('/logout', (req, res) => {
+    req.logout();
+    res.redirect('/notlogged');
+});
+
+app.get('/notlogged', (req, res) => {
+    res.send(req.user ? req.user : 'Not logged in. Login with Google or Facebook.');
+});
 // ... The rest of your API routes ...
 
 app.listen(8000, () => {
