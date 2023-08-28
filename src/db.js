@@ -41,7 +41,7 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
                 console.log('Users table created successfully');
             }
         });
-
+        //Creating carts table
         db.run(`
             CREATE TABLE IF NOT EXISTS carts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,8 +61,9 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
                 console.log('Carts table created successfully');
             }
         });
+        //Creating orders table
         db.run(`
-            CREATE TABLE IF NOT EXISTS order(           
+            CREATE TABLE IF NOT EXISTS orders (           
              order_id INTEGER PRIMARY KEY AUTOINCREMENT,            
              customer_id INTEGER,            
              order_date TEXT,           
@@ -76,9 +77,53 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
             if (createErr) {
                 console.error('Error creating order table:', createErr.message);
             } else {
-                console.log('Order table created successfully');
+                console.log('Orders table created successfully');
             }
         });
+        db.run(`
+            Create TABLE IF NOT EXISTS sales (
+                sales_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                product_id INTEGER,
+                sale_date TEXT,
+                quantity INTEGER
+                price DECIMAL (10,2),
+                FOREIGN KEY (product_id) REFERENCES products(id)
+            )
+        `,(createErr)=>{
+            if (createErr) {
+            console.error('Error creating sales table:',createErr.message);
+            } else {
+            console.log('Sales table created successfully')
+            }
+        
+        });
+        //Creating Revenue table
+        db.run(`
+           CREATE TABLE IF NOT EXISTS revenue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT,
+            total_revenue DECIMAL(10, 2)
+           )
+        `,(createErr)=>{
+            if(createErr) {
+                console.error('Error creating revenue table:',createErr.message)
+            }else{
+                console.log('Revenue table created successfully')
+            }
+        })
+        db.run(`
+        CREATE TABLE IF NOT EXISTS category (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name varchar(255),
+        description TEXT
+        )
+        `,(createErr)=>{
+            if(createErr){
+                console.error('Error creating category table:',createErr.message)
+            }else{
+                console.log('Category table created successfully')
+            }
+        })
     }
 });
 
