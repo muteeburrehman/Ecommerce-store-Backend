@@ -124,13 +124,41 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
                 console.log('Category table created successfully')
             }
         })
+        db.run(`
+        CREATE TABLE IF NOT EXISTS reviews(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category_id INTEGER,
+        user_id INTEGER,
+        rating INTEGER,
+        comment TEXT,
+        FOREIGN KEY (category_id) REFERENCES category(id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+        `,(createErr)=>{
+            if (createErr){
+                console.error('Error creating review table:',createErr.message)
+            }else {
+                console.log('Review table created successfully')
+            }
+        })
+        db.run(`
+        CREATE TABLE  IF NOT EXISTS transactions (
+        transactionId INTEGER PRIMARY KEY AUTOINCREMENT,
+        customerId INTEGER,
+        paidAmount DOUBLE,
+        paymentMethod TEXT,
+        createdTime DATETIME,
+        FOREIGN KEY (customerId) REFERENCES users(id)
+        )
+        `,(createErr)=>{
+            if(createErr){
+                console.error('Error creating transaction table:',createErr.message)
+            }else {
+                console.log('Transaction table created successfully')
+            }
+        })
     }
 });
-
-
-
-
-
 
 // Function to query the database
 async function queryDatabase(query, params) {

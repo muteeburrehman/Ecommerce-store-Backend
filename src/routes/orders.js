@@ -50,7 +50,7 @@ ordersRouter.put('/api/orders/:orderId',async (req,res)=>{
 });
 //Delete the specific order
 ordersRouter.delete('/api/orders/:orderId',async (req,res)=>{
-    const orderId =req.params;
+    const {orderId} =req.params;
 
     const deleteQuery=`
     DELETE FROM ORDERS 
