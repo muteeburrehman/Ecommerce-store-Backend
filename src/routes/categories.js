@@ -7,7 +7,7 @@ export const categoryRouter=express.Router();
 categoryRouter.get('/api/categories',async ( req,res)=>{
     try{
         const query =`
-        SELECT * FROM category,[]
+        SELECT * FROM categories,[]
         `;
         const categoryData =await queryDatabase(query)
         res.status(200).json(categoryData)
@@ -22,7 +22,7 @@ categoryRouter.get('/api/categories/:categoryId', async (req, res) => {
     const { categoryId } = req.params;
     try {
         const query = `
-            SELECT * FROM category
+            SELECT * FROM categories
             WHERE id = ?
         `;
         const CategoryData = await queryDatabase(query, [categoryId]); // Passing categoryId as a parameter
@@ -40,7 +40,7 @@ categoryRouter.post('/api/categories',async (req,res)=>{
     const{name,description}=req.body;
     try{
         const query=`
-        INSERT INTO category (name,description)
+        INSERT INTO categories (name,description)
         VALUES (?,?)
         `;
         const categoryData = await queryDatabase(query,[name],[description])

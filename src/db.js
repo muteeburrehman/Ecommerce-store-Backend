@@ -13,6 +13,7 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
                 price DOUBLE,
+                category TEXT,
                 description TEXT,
                 imageUrl TEXT,
                 averageRating TEXT
@@ -41,6 +42,26 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
                 console.log('Users table created successfully');
             }
         });
+        db.run(`
+            CREATE TABLE IF NOT EXISTS customers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER UNIQUE,
+                first_name TEXT,
+                last_name TEXT,
+                email TEXT UNIQUE,
+                phone_no TEXT UNIQUE,
+                birthdate TEXT,
+                gender TEXT,
+                address TEXT,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `, (createErr)=>{
+            if(createErr){
+                console.error('Error creating customers table:',createErr.message)
+            }else{
+                console.log('Customers created successfully')
+            }
+        })
         //Creating carts table
         db.run(`
             CREATE TABLE IF NOT EXISTS carts (
@@ -112,7 +133,7 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
             }
         })
         db.run(`
-        CREATE TABLE IF NOT EXISTS category (
+        CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name varchar(255),
         description TEXT
@@ -157,6 +178,25 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
                 console.log('Transaction table created successfully')
             }
         })
+        db.run(`
+        CREATE TABLE IF NOT EXISTS offers(
+            offerId INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            startDate DATETIME,
+            endDate DATETIME,
+            discountPersent REAL,
+            productId INTEGER,
+            imageUrl TEXT,
+            FOREIGN KEY (productId) REFERENCES products(id)
+        )
+        `,(createErr)=>{
+            if(createErr){
+                console.error('Error creating hot_offers table:',createErr.message)
+                }else{
+                 console.log('offers table created successfully')   
+                }
+                })
     }
 });
 
