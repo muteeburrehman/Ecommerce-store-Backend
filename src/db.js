@@ -66,13 +66,13 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
         db.run(`
             CREATE TABLE IF NOT EXISTS carts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER, 
-                cart_item_id INTEGER,
+                customer_id INTEGER, 
+                
                 product_id INTEGER,
                 quantity INTEGER,
                 price DECIMAL(10, 2),
                 total_price DECIMAL(10, 2),
-                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (customer_id) REFERENCES customers(id),
                 FOREIGN KEY (product_id) REFERENCES products(id)
             )
         `, (createErr) => {
@@ -92,7 +92,7 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
              total_amount DOUBLE,            
              shipping_address TEXT,            
              billing_address TEXT,
-             FOREIGN KEY (customer_id) REFERENCES users(id)
+             FOREIGN KEY (customer_id) REFERENCES customers(id)
             )
         `, (createErr) => {
             if (createErr) {
@@ -149,11 +149,11 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
         CREATE TABLE IF NOT EXISTS reviews(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         category_id INTEGER,
-        user_id INTEGER,
+        customer_id INTEGER,
         rating INTEGER,
         comment TEXT,
         FOREIGN KEY (category_id) REFERENCES category(id),
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        FOREIGN KEY (customer_id) REFERENCES customers(id)
         )
         `,(createErr)=>{
             if (createErr){
@@ -169,7 +169,7 @@ const db = new sqlite3.Database('./mock.db', sqlite3.OPEN_READWRITE | sqlite3.OP
         paidAmount DOUBLE,
         paymentMethod TEXT,
         createdTime DATETIME,
-        FOREIGN KEY (customerId) REFERENCES users(id)
+        FOREIGN KEY (customerId) REFERENCES customers(id)
         )
         `,(createErr)=>{
             if(createErr){
