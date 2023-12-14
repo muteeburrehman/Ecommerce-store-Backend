@@ -3,7 +3,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth2';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import expressSession from 'express-session';
-import { queryDatabase } from "../db";
+import { queryDatabase } from "../DataBase/db";
 
 export const authenticationRouter = express.Router();
 

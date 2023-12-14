@@ -1,5 +1,5 @@
 import express from 'express';
-import { db, queryDatabase } from '../db';
+import { db, queryDatabase } from '../DataBase/db';
 import passport from 'passport';
 
 export const usersRouter = express.Router();

@@ -1,5 +1,5 @@
 import express from "express";
-import {db,queryDatabase} from "../db";
+import {queryDatabase} from "../DataBase/db";
 
 export const reviewRouter = express.Router();
 

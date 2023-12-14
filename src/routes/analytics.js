@@ -1,5 +1,5 @@
 import express from "express";
-import { db,queryDatabase } from "../db";
+import { db,queryDatabase } from "../DataBase/db";
 
 export const analyticsRouter = express.Router();
 // Endpoint: GET /api/analytics/sales
